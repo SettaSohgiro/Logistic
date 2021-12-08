@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
+    <servlet>
+        <servlet-name>InicioSesion</servlet-name>
+        <servlet-class>Servlet.InicioSesion</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>Redireccionamiento</servlet-name>
+        <servlet-class>Servlet.Redireccionamiento</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>NuevoUsuario</servlet-name>
+        <servlet-class>Servlet.NuevoUsuario</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>EliminarProducto</servlet-name>
+        <servlet-class>Servlet.EliminarProducto</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ProductosServlet</servlet-name>
+        <servlet-class>Servlet.ProductosServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>SolicitudesServlet</servlet-name>
+        <servlet-class>Servlet.SolicitudesServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ContratosVentaServlet</servlet-name>
+        <servlet-class>Servlet.ContratosVentaServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ReportesServlet</servlet-name>
+        <servlet-class>Servlet.ReportesServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>SegurosServlet</servlet-name>
+        <servlet-class>Servlet.SegurosServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>Solicitudes2Servlet</servlet-name>
+        <servlet-class>Servlet.Solicitudes2Servlet</servlet-class>
+    </servlet>
+    
+    
+    
+    <servlet-mapping>
+        <servlet-name>InicioSesion</servlet-name>
+        <url-pattern>/iniciar</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Redireccionamiento</servlet-name>
+        <url-pattern>/dirigir</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>NuevoUsuario</servlet-name>
+        <url-pattern>/crearusuario</url-pattern>
+    </servlet-mapping>
+    
+       <servlet-mapping>
+        <servlet-name>EliminarProducto</servlet-name>
+        <url-pattern>/deleteproducto</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ProductosServlet</servlet-name>
+        <url-pattern>/productoservlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SolicitudesServlet</servlet-name>
+        <url-pattern>/solicitudservlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ContratosVentaServlet</servlet-name>
+        <url-pattern>/contratosventaservlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ReportesServlet</servlet-name>
+        <url-pattern>/reportesservlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SegurosServlet</servlet-name>
+        <url-pattern>/segurosservlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Solicitudes2Servlet</servlet-name>
+        <url-pattern>/solicitudes2servlet</url-pattern>
+    </servlet-mapping>
+    
+    <session-config>
+        <session-timeout>
+            30
+        </session-timeout>
+    </session-config>
+</web-app>

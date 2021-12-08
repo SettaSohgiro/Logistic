@@ -1,0 +1,575 @@
+$(document).ready(function () {
+
+    $("li a ").on("click", function () {
+        var lii = $(this).attr("id").substr(1, 5);
+        var clali = $(this).attr("class").substr(9, 6);
+        //       console.log("herf - class : ",lii , clali);
+        if (clali != "active") {
+            $.each($("#ul_nav_user li a"), function (key, value) {
+                //             console.log(value,key);
+                $("#amenu" + key).removeClass("active");
+                $("#menu" + key).removeClass("active");
+
+            });
+
+            $("#a" + lii).addClass("active");
+            $("#" + lii).addClass("active");
+        }
+    });
+
+    $(function () {
+
+        tableUsuarios();
+        llenarComboBox();
+        limitarFechaProduccionInsert();
+        limitarInputsNumeros();
+
+    });
+
+
+
+//CODIGO QUE COLOCA LOS REGISTROS EN LA TABLA
+    var tableR = "";
+    function tableUsuarios() {
+        $('#example').dataTable().fnClearTable();
+        $('#example').dataTable().fnDestroy();
+
+
+        tableR = $('#example').dataTable({
+
+            scrollY: "500px",
+            scrollX: true,
+            scrollCollapse: true,
+            paging: true,
+            fixedColumns: {
+                leftColumns: 2
+            },
+            "pageLength": 25,
+            lengthMenu: [[25, 50], [25, 50]],
+            "columnDefs": [
+                {"targets": [0], "visible": true, "searchable": true},
+            ],
+            "language": {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "Ningún dato disponible en esta tabla",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix": "",
+                "sSearch": "Buscar:",
+                "sUrl": "",
+                "sInfoThousands": ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                }
+            },
+            "bProcessing": true,
+            //"sAjaxSource": "../../controllers/pagosController.php",
+            //"sAjaxDataProp": "demo",
+            "ajax": {
+                url: "productoservlet", // json datasource
+                type: "post", // method  , by default get
+                data: {"func": "tablaProductos",
+                    'id_productor': 0
+                },
+
+            },
+            "order": [[0, "desc"]],
+            "bPaginate": true,
+            "sPaginationType": "full_numbers",
+            "iDisplayLength": 100,
+            "aoColumns": [
+                {mData: "ID"},
+                {mData: "Nombre"},
+                {mData: "Calidad"},
+                {mData: "Cantidad"},
+                {mData: "Precio"},
+                {mData: "FechaProducción"},
+//                {mData: "Correo"},
+//                {mData: "Usuario"},
+//                {mData: "Pass"},
+                {mData: "Actualizar"},
+                {mData: "Borrar"},
+            ],
+            initComplete: function () {
+                // Apply the search
+                this.api().columns().every(function () {
+                    var that = this;
+
+                    $('input', this.header()).on('keyup change clear', function () {
+                        if (that.search() !== this.value) {
+                            that
+                                    .search(this.value)
+                                    .draw();
+                        }
+                    });
+                });
+            }
+
+
+
+        });
+    }
+
+
+
+
+
+
+// TOMA LOS ID DE LOS ELEMENTOS DE LA PESTAÑA "menu1"
+    $("#btn_envio_producto").on("click", function () {
+
+        var salida = formulariosEnvioValida("divFormProducto");
+
+        console.log("salida de la validacion del formulario", salida);
+        if (salida !== false) {
+            $.ajax({
+                type: "post",
+                url: "productoservlet",
+                data: {"func": "crearProducto",
+//                    "id_idproducto": salida["id_idproducto"],
+                    'id_cantidad': salida["id_cantidad"],
+                    'id_precio': salida["id_precio"],
+                    'id_fechaproduccion': salida["id_fechaproduccion"],
+                    'id_nombre_value': salida["id_nombre_value"],
+                    'id_nombre_text': salida["id_nombre_text"],
+                    'id_calidad_value': salida["id_calidad_value"],
+                    'id_calidad_text': salida["id_calidad_text"],
+                    'id_productor': 0
+                },
+                beforeSend: function (xhr) {
+
+                },
+                success: function (data, textStatus, jqXHR) {
+                    console.log(data);
+                    $(location).attr('href', 'http://localhost:8090/LogisticFV/productor.jsp');
+//                    $(location).attr('href', 'http://localhost:8090/LogisticFV/productor.jsp#menu0');
+                    //   var resp = JSON.parse(data);
+                    //   console.log(resp);
+                    // document.location.href = "views/inicio/inicio.php";
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+
+                },
+
+                complete: function (jqXHR, textStatus) {
+                    //document.location.href = "views/inicio/inicio.php";
+                }
+
+
+
+            });
+        } else {
+
+
+        }
+
+    });
+
+
+    // ----------------------------captura de botones de actualizar y borrar------------------------------
+    $("#example").on("click", "tr button", function () {
+        var clic = $(this).attr("name");
+        //   console.log("click : ",clic);
+        setTimeout(function () {
+            dataUsuarios(clic);
+        }, 100);
+    });
+    var datausuario = [];
+
+    $('#example tbody').on('click', 'tr', function () {
+        var table = $('#example').DataTable();
+        datausuario = table.row(this).data();
+
+        var clic = $("document button").attr("name");
+        //   console.log("cliock : ",clic);
+        //   console.log("table : ", datausuario);
+    });
+
+    function dataUsuarios(tipo) {
+        console.log("tipo", tipo);
+        //PREPARA LOS DATOS DEL REGISTRO SELECCIONADO PARA MOSTRARLOS EN EL PANEL MODAL
+        if (tipo == "actualizar") {
+            formulariosValidaOrigen("divFormProducto_up");
+            //    console.log("click : ",tipo);
+            //    console.log("table : ", datausuario);
+            $("#exampleModal").addClass("show").css("display", "block").removeAttr("aria-hidden").attr("aria-modal", "true");
+
+            //OBTENER REGISTRO SELECCIONADO EN AJAX
+            $.ajax({
+                type: "post",
+                url: "productoservlet",
+                data: {"func": "llenarFormMod",
+                    "id_idproducto": datausuario["ID"],
+                },
+                beforeSend: function (xhr) {
+
+                },
+                success: function (data, textStatus, jqXHR) {
+//                    var resp = JSON.parse(data);
+                    console.log(data);
+                    $("#id_idproducto_up").val(data.idProducto);
+                    $("#id_nombre_up").val(data.idNombre);
+                    $("#id_calidad_up").val(data.idCalidad);
+                    $("#id_cantidad_up").val(data.cantidad);
+                    $("#id_precio_up").val(data.precio);
+                    $("#id_fecha_up").val(data.fechaProd);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+
+                },
+                complete: function (jqXHR, textStatus) {
+
+                }
+
+            });
+
+            //MUESTRA MODAL DE ELIMINAR REGISTRO
+        } else if (tipo == "eliminar") {
+            $("#modalmsnsn").addClass("show").css("display", "block").removeAttr("aria-hidden").attr("aria-modal", "true");
+            $("#mdlbmsnsn").text("");
+            $("#mdlbmsnsn").html("Seguro que desea eliminar el registro");
+
+            $("#btn_mod_si").on("click", function () {
+                console.log("hizo click en si : ", datausuario["ID"]);
+
+                $.ajax({
+                    type: "post",
+                    url: "productoservlet",
+                    data: {"func": "deleteProducto",
+                        "id_idproducto_d": datausuario["ID"]},
+
+                    beforeSend: function (xhr) {
+
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        console.log(data);
+                        $("#modalmsnsn").removeClass("show").css("display", "none").removeAttr("aria-modal").attr("aria-hidden", "true");
+                        tableUsuarios();
+                        $(location).attr('href', 'http://localhost:8090/LogisticFV/productor.jsp#menu0');
+                        //   var resp = JSON.parse(data);
+                        //   console.log(resp);
+                        // document.location.href = "views/inicio/inicio.php";
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+
+                    },
+
+                    complete: function (jqXHR, textStatus) {
+                        //document.location.href = "views/inicio/inicio.php";
+                    }
+
+
+
+                });
+
+
+            });// click en boton si
+        }
+
+    }
+
+
+// -----------------funcionamiento de botones de modal modificar-----------------------------------
+    $("#btn_mod_cerrar").on("click", function () {
+
+        $("#exampleModal").removeClass("show").css("display", "none").removeAttr("aria-modal").attr("aria-hidden", "true");
+    });
+
+    $("#btn_mod_modificar").on("click", function () {
+
+        var salida = formulariosEnvioValida("divFormProducto_up");
+        console.log("tag : ", salida);
+        console.log("tag can : ", salida.length);
+        var data = new FormData();
+        data.append("func", "updateProducto");
+
+        if (salida !== false) {
+            console.log("entro al ajax");
+            $.ajax({
+                url: "productoservlet",
+                type: "post",
+                data: {"func": "updateProducto",
+                    "id_idproducto": salida["id_idproducto_up"],
+                    'id_cantidad': salida["id_cantidad_up"],
+                    'id_precio': salida["id_precio_up"],
+                    'id_fecha': salida["id_fecha_up"],
+                    'id_nombre_value': salida["id_nombre_up_value"],
+                    'id_nombre_text': salida["id_nombre_up_text"],
+                    'id_calidad_value': salida["id_calidad_up_value"],
+                    'id_calidad_text': salida["id_calidad_up_text"],
+                    //    contentType: false,
+                    //    processData: false,
+                },
+
+                success: function (data, textStatus, jqXHR) {
+                    console.log(data);
+                    tableUsuarios();
+                    $("#exampleModal").removeClass("show").css("display", "none").removeAttr("aria-modal").attr("aria-hidden", "true");
+                    $(location).attr('href', 'http://localhost:8090/LogisticFV/productor.jsp');
+                    //   var resp = JSON.parse(data);
+                    //   console.log(resp);
+                    // document.location.href = "views/inicio/inicio.php";
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+
+                },
+
+                complete: function (jqXHR, textStatus) {
+                    //document.location.href = "views/inicio/inicio.php";
+                }
+
+
+
+            });
+        }
+
+
+    });
+
+
+// -----------------fin funcionamiento de botones de modal modificar----------------------------------- 
+
+// -----------------funcionamiento de botones de modal eliminar----------------------------------- 
+
+
+    $("#btn_mod_no").on("click", function () {
+
+        $("#modalmsnsn").removeClass("show").css("display", "none").removeAttr("aria-modal").attr("aria-hidden", "true");
+
+    });
+
+
+
+
+// -----------------fin funcionamiento de botones de modal eliminar----------------------------------- 
+
+
+
+
+    //FUNCION QUE VALIDA LOS DATOS INGRESADOS EN EL FORMULARIO DE MODIFICACION O CREACION
+    function formulariosEnvioValida(idform) {
+        var x = 0;
+        var dataarray = [];
+        var tag = true;
+
+        //OBTIENE CADA ELEMENTO INPUT EN FORMULARIO
+        $("#" + idform + " input").each(function () {
+            var id = $(this).attr("id");
+            //   console.log("id de los imput de los formularios",id);
+            var datos = $("#" + id).val();
+            //    console.log("datos :",datos);
+            if (datos != "") {
+                dataarray[id] = datos;
+                $("#" + id).css("border", "1px solid #ced4da");
+            } else {
+                tag = false;
+                $("#" + id).css("border", "1px solid red");
+            }
+
+            x++;
+        });
+
+        //OBTIENE CADA ELEMENTO COMBO BOX EN FORMULARIO
+        $("#" + idform + " select").each(function () {
+            var id = $(this).attr("id");
+            var idvalue = id + "_value";
+            var idtext = id + "_text";
+            var value_cb = this.value;
+            var text_cb = this.options[this.selectedIndex].text;
+
+            if (value_cb != "") {
+                dataarray[idvalue] = value_cb;
+                dataarray[idtext] = text_cb;
+
+                $("#" + id).css("border", "1px solid #ced4da");
+            } else {
+                tag = false;
+                $("#" + id).css("border", "1px solid red");
+            }
+
+            x++;
+        });
+
+        // console.log("dataarray ",dataarray);
+        if (tag == true) {
+            return dataarray;
+        } else {
+            return tag;
+        }
+
+
+    }
+
+    function formulariosValidaOrigen(idform) {
+        var x = 0;
+        var dataarray = [];
+        var tag = true;
+        $("#" + idform + " input").each(function () {
+            var id = $(this).attr("id");
+            //     console.log("id de los imput de los formularios",id);
+            $("#" + id).css("border", "1px solid #ced4da");
+
+        });
+
+    }
+
+    function llenarComboBox() {
+        $.ajax({
+            url: "productoservlet",
+            type: "post",
+            data: {"func": "llenarComboBoxes",
+            },
+
+            success: function (data, textStatus, jqXHR) {
+                console.log(data);
+                var frutas = data.frutas;
+                var calidades = data.calidades;
+
+                $('#id_nombre').append($('<option>', {
+                    value: "",
+                    text: "Seleccionar"
+                }));
+
+//                $('#id_nombre_up').append($('<option>', {
+//                    value: "",
+//                    text: "Seleccionar"
+//                }));
+
+                for (let i = 0; i < Object.keys(data.frutas).length; i++) {
+
+                    $('#id_nombre').append($('<option>', {
+                        value: i,
+                        text: data.frutas[i]
+                    }));
+
+                    $('#id_nombre_up').append($('<option>', {
+                        value: i,
+                        text: data.frutas[i]
+                    }));
+
+                }
+
+                $('#id_calidad').append($('<option>', {
+                    value: "",
+                    text: "Seleccionar"
+                }));
+
+//                $('#id_calidad_up').append($('<option>', {
+//                    value: "",
+//                    text: "Seleccionar"
+//                }));
+
+                for (let i = 0; i < Object.keys(data.calidades).length; i++) {
+
+                    $('#id_calidad').append($('<option>', {
+                        value: i,
+                        text: data.calidades[i]
+                    }));
+
+                    $('#id_calidad_up').append($('<option>', {
+                        value: i,
+                        text: data.calidades[i]
+                    }));
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+
+            },
+
+            complete: function (jqXHR, textStatus) {
+                //document.location.href = "views/inicio/inicio.php";
+            }
+
+        });
+    }
+
+    function limitarFechaProduccionInsert() {
+        var maxDate = new Date();
+        var minDate = new Date();
+        minDate.setMonth(maxDate.getMonth() - 3);
+
+        var dd = maxDate.getDate();
+        var mm = maxDate.getMonth() + 1; //January is 0 so need to add 1 to make it 1!
+        var yyyy = maxDate.getFullYear();
+        if (dd < 10) {
+            dd = '0' + dd
+        }
+        if (mm < 10) {
+            mm = '0' + mm
+        }
+
+        maxDate = yyyy + '-' + mm + '-' + dd;
+
+        var dd = minDate.getDate();
+        var mm = minDate.getMonth() + 1; //January is 0 so need to add 1 to make it 1!
+        var yyyy = minDate.getFullYear();
+        if (dd < 10) {
+            dd = '0' + dd
+        }
+        if (mm < 10) {
+            mm = '0' + mm
+        }
+
+        minDate = yyyy + '-' + mm + '-' + dd;
+
+        document.getElementById("id_fechaproduccion").setAttribute("max", maxDate);
+        document.getElementById("id_fechaproduccion").setAttribute("min", minDate);
+        document.getElementById("id_fecha_up").setAttribute("max", maxDate);
+        document.getElementById("id_fecha_up").setAttribute("min", minDate);
+
+    }
+
+    function limitarInputsNumeros() {
+        document.getElementById("id_cantidad").onkeyup = function () {
+            if (this.value < 0) {
+                this.value = this.value * -1
+            }
+            ;
+            if (this.value == 0) {
+                this.value = 1
+            }
+        }
+
+        document.getElementById("id_precio").onkeyup = function () {
+            if (this.value < 0) {
+                this.value = this.value * -1
+            }
+            ;
+            if (this.value == 0) {
+                this.value = 1
+            }
+        }
+
+        document.getElementById("id_cantidad_up").onkeyup = function () {
+            if (this.value < 0) {
+                this.value = this.value * -1
+            }
+            ;
+            if (this.value == 0) {
+                this.value = 1
+            }
+        }
+
+        document.getElementById("id_precio_up").onkeyup = function () {
+            if (this.value < 0) {
+                this.value = this.value * -1
+            }
+            ;
+            if (this.value == 0) {
+                this.value = 1
+            }
+        }
+    }
+
+});
